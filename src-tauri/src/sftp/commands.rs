@@ -112,14 +112,46 @@ pub async fn sftp_open(
             .map_err(|e| SftpError::ChannelError(e.to_string()))?
     };
 
-    // 3. Request the SFTP subsystem, or exec sudo sftp-server.
+    // 3. Request the SFTP subsystem, or (sudo) preflight + exec sudo sftp-server.
     if use_sudo.unwrap_or(false) {
-        // `-n` makes sudo fail fast and non-interactively: without it, a host
-        // that requires a password blocks reading the SFTP byte stream as the
-        // (wrong) password and the open hangs until the init timeout. The shell
-        // loop probes sftp-server on $PATH first (portable `command -v`, not the
-        // non-POSIX `which`) then the known per-distro install paths, so this
-        // works on Debian/Ubuntu, RHEL/Fedora, Alpine and Arch.
+        // Preflight on a throwaway channel: confirm the user actually has
+        // *passwordless* sudo before committing the SFTP channel. Without this,
+        // a host that prompts for a password leaves the SFTP init blocked until
+        // the timeout — russh-sftp does not cancel the pending init when the
+        // channel hits EOF — so we'd hang ~30 s instead of failing cleanly.
+        // `sudo -n true` exits non-zero immediately when a password is required.
+        let mut check = {
+            let handle = handle_arc.lock().await;
+            handle
+                .channel_open_session()
+                .await
+                .map_err(|e| SftpError::ChannelError(e.to_string()))?
+        };
+        check
+            .exec(true, "sudo -n true")
+            .await
+            .map_err(|e| SftpError::ChannelError(e.to_string()))?;
+        let mut sudo_exit = None;
+        while let Some(msg) = check.wait().await {
+            match msg {
+                russh::ChannelMsg::ExitStatus { exit_status } => sudo_exit = Some(exit_status),
+                russh::ChannelMsg::Eof | russh::ChannelMsg::Close => break,
+                _ => {}
+            }
+        }
+        if sudo_exit != Some(0) {
+            return Err(SftpError::PermissionDenied(
+                "passwordless sudo is required to browse as root, but it is not configured \
+                 for this user"
+                    .to_string(),
+            ));
+        }
+
+        // Passwordless sudo confirmed — exec sudo sftp-server on the real
+        // channel. `-n` keeps it non-interactive; the shell loop probes
+        // sftp-server on $PATH first (portable `command -v`, not the non-POSIX
+        // `which`) then the known per-distro install paths, so this works on
+        // Debian/Ubuntu, RHEL/Fedora, Alpine and Arch.
         channel
             .exec(
                 true,

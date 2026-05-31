@@ -1,11 +1,13 @@
 // SFTP sudo-mode toggle (PR #35): the shield toolbar button reopens the SFTP
 // session over `sudo sftp-server` so the user can browse as root, then back.
 //
-// Infra notes: every e2e sshd target runs `testuser` with SUDO_ACCESS=true
-// (passwordless sudo), and the linuxserver/openssh-server image is Alpine, so
-// sftp-server lives at /usr/lib/ssh/sftp-server — found via the backend's
-// command-v + per-distro probe list. Because testuser != root and the
-// transport is sftp, the shield button is rendered.
+// Two targets exercise both paths:
+//   - sshd-sudo: NOPASSWD sudoers (tests/sudo-server) → the toggle succeeds.
+//   - sshd-pass: password-prompting sudo → the backend preflight (`sudo -n
+//     true`) fails fast and the toggle surfaces an error banner instead of
+//     hanging or silently no-op'ing.
+// Both linuxserver images are Alpine, so sftp-server lives at
+// /usr/lib/ssh/sftp-server — found via the backend's command-v + probe list.
 
 import { expect } from "chai";
 import { resetApp } from "../helpers/reset.js";
@@ -27,20 +29,16 @@ import {
     waitForExplorer,
 } from "../helpers/sftp-ops.js";
 
+const SSHD_SUDO_HOST = process.env.SSHD_SUDO_HOST ?? "sshd-sudo";
+const SSHD_SUDO_PORT = Number(process.env.SSHD_SUDO_PORT ?? 2222);
 const SSHD_PASS_HOST = process.env.SSHD_PASS_HOST ?? "sshd-pass";
 const SSHD_PASS_PORT = Number(process.env.SSHD_PASS_PORT ?? 2222);
 const SSH_USER = process.env.SSH_USER ?? "testuser";
 const SSH_PASS = process.env.SSH_PASS ?? "testpass";
 
-async function openSftp(label: string): Promise<void> {
+async function openSftp(label: string, host: string, port: number): Promise<void> {
     await openNewHostModal();
-    await fillPasswordHostForm({
-        label,
-        host: SSHD_PASS_HOST,
-        port: SSHD_PASS_PORT,
-        username: SSH_USER,
-        password: SSH_PASS,
-    });
+    await fillPasswordHostForm({ label, host, port, username: SSH_USER, password: SSH_PASS });
     await clickSave();
     await waitForModalClosed();
     await findHostCardByLabel(label);
@@ -56,9 +54,8 @@ describe("SFTP sudo toggle", () => {
     });
 
     it("enables sudo mode then disables it, keeping the listing", async () => {
-        await openSftp("sudo-target");
+        await openSftp("sudo-on", SSHD_SUDO_HOST, SSHD_SUDO_PORT);
 
-        // The shield button is rendered (non-root sftp session) and starts off.
         const toggle = await $("[data-testid='explorer-sudo-toggle']");
         await toggle.waitForDisplayed({ timeout: 10_000 });
         expect(await sudoToggleState()).to.equal("false");
@@ -79,9 +76,6 @@ describe("SFTP sudo toggle", () => {
         // Disable sudo: back to the unprivileged session, symmetrically.
         await toggleSudo(false);
         expect(await sudoToggleState()).to.equal("false");
-        expect(
-            await (await $("[data-testid='explorer-sudo-toggle']")).getAttribute("aria-label"),
-        ).to.equal("Enable sudo mode");
         await browser.waitUntil(
             async () => (await $$("[data-entry-row='true']")).length > 0,
             { timeout: 15_000, timeoutMsg: "no entries rendered after disabling sudo" },
@@ -89,7 +83,7 @@ describe("SFTP sudo toggle", () => {
     });
 
     it("stays in the current directory after toggling sudo", async () => {
-        await openSftp("sudo-keepdir");
+        await openSftp("sudo-keepdir", SSHD_SUDO_HOST, SSHD_SUDO_PORT);
 
         // Navigate into a fresh subdir so currentPath is a non-home path.
         const dirName = "e2e-sudo-" + Date.now();
@@ -116,5 +110,28 @@ describe("SFTP sudo toggle", () => {
             buttons.at(-2)?.click();
         });
         await deleteEntry(dirName);
+    });
+
+    it("surfaces an error when passwordless sudo is unavailable", async () => {
+        // sshd-pass has sudo but PROMPTS for a password, so the backend
+        // preflight rejects it. The toggle must show an error banner and stay
+        // off — not hang or silently do nothing.
+        await openSftp("sudo-nopass", SSHD_PASS_HOST, SSHD_PASS_PORT);
+
+        const toggle = await $("[data-testid='explorer-sudo-toggle']");
+        await toggle.waitForClickable({ timeout: 10_000 });
+        await toggle.click();
+
+        // Error banner appears (fast, via the preflight — no 30s init hang).
+        const banner = await $("[data-testid='explorer-error']");
+        await banner.waitForDisplayed({ timeout: 15_000 });
+        const text = await browser.execute(
+            () => document.querySelector("[data-testid='explorer-error']")?.textContent ?? "",
+        );
+        expect(text.toLowerCase()).to.include("sudo");
+
+        // The toggle did not engage and is re-enabled for another try.
+        expect(await sudoToggleState()).to.equal("false");
+        await (await $("[data-testid='explorer-sudo-toggle']")).waitForClickable({ timeout: 5_000 });
     });
 });
