@@ -173,10 +173,13 @@ pub async fn sftp_open(
             .map_err(|e| SftpError::ChannelError(e.to_string()))?;
     }
 
-    // 4. Hand the channel's byte-stream to the russh-sftp client.
-    //    Raise the per-request timeout to 30 s (russh-sftp defaults to 10 s),
-    //    which covers init + every later request on high-latency servers.
-    let sftp = russh_sftp::client::SftpSession::new_opts(channel.into_stream(), Some(30))
+    // 4. Hand the channel's byte-stream to the russh-sftp client (10 s default
+    //    init timeout). Do NOT raise this: russh's request_subsystem above
+    //    returns *before* the server's accept/reject reply, so on a host
+    //    without the SFTP subsystem (e.g. SCP-only) this init is what fails —
+    //    a longer timeout just delays the frontend's SFTP→SCP fallback by that
+    //    much (a 30 s value broke the SCP-fallback e2e specs).
+    let sftp = russh_sftp::client::SftpSession::new(channel.into_stream())
         .await
         .map_err(|e| SftpError::ProtocolError(e.to_string()))?;
 
