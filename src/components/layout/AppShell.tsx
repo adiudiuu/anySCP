@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useTabStore } from "../../stores/tab-store";
 import { useSessionStore } from "../../stores/session-store";
 import { useTerminalSearchStore } from "../../stores/terminal-search-store";
 import { useSettingsStore } from "../../stores/settings-store";
+import { useUpdaterStore } from "../../stores/updater-store";
 import { useUiStore } from "../../stores/ui-store";
 import { useKeyboardShortcuts } from "../../hooks/use-keyboard-shortcuts";
 import { useSshStatus } from "../../hooks/use-ssh-status";
@@ -21,6 +22,7 @@ import { SettingsPage } from "../settings";
 import { PortForwardingPage } from "../port-forwarding";
 import { HistoryPage } from "../history";
 import { usePortForwardEvents } from "../../hooks/use-port-forward-events";
+import { UpdateDialog } from "../updater/UpdateDialog";
 
 export function AppShell() {
   const themeMode = useSettingsStore((s) => s.themeMode);
@@ -230,6 +232,18 @@ export function AppShell() {
     void useSettingsStore.getState().loadSettings();
   }, []);
 
+  // Check for updates once on launch, after settings load so the auto-update
+  // preference is known. The check always runs; the silent download/install
+  // only happens in packaged builds (see updater store).
+  const settingsLoaded = useSettingsStore((s) => s.loaded);
+  const didUpdateCheck = useRef(false);
+  useEffect(() => {
+    if (!settingsLoaded || didUpdateCheck.current) return;
+    didUpdateCheck.current = true;
+    void useUpdaterStore.getState().loadAppVersion();
+    void useUpdaterStore.getState().checkOnStartup();
+  }, [settingsLoaded]);
+
   useLayoutEffect(() => {
     document.documentElement.dataset.theme = themeMode;
   }, [themeMode]);
@@ -349,6 +363,9 @@ export function AppShell() {
 
       {/* Host modal (new + edit) */}
       <HostEditModal />
+
+      {/* Update-available popup */}
+      <UpdateDialog />
 
       {/* Snippet command palette */}
       <SnippetPalette />
