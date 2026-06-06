@@ -8,11 +8,12 @@ import { useTabStore } from "../../stores/tab-store";
 import { ContextMenu } from "../shared/ContextMenu";
 import type { ContextMenuItem } from "../shared/ContextMenu";
 import type { ConnectionHistoryEntry } from "../../types";
+import { parseSqliteUtc } from "../../utils/time";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDateTime(iso: string): string {
-  const d = new Date(iso);
+  const d = parseSqliteUtc(iso);
   return d.toLocaleString(undefined, {
     month: "short",
     day: "numeric",
@@ -23,12 +24,12 @@ function formatDateTime(iso: string): string {
 }
 
 function formatTime(iso: string): string {
-  const d = new Date(iso);
+  const d = parseSqliteUtc(iso);
   return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
 function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
+  const diff = Date.now() - parseSqliteUtc(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "Just now";
   if (mins < 60) return `${mins}m ago`;
@@ -371,7 +372,7 @@ function groupByDate(entries: ConnectionHistoryEntry[]): DateGroup[] {
   const yesterdayStr = yesterday.toDateString();
 
   for (const entry of entries) {
-    const d = new Date(entry.connected_at);
+    const d = parseSqliteUtc(entry.connected_at);
     const dateStr = d.toDateString();
 
     const label = dateStr === todayStr
