@@ -23,6 +23,7 @@ import { PortForwardingPage } from "../port-forwarding";
 import { HistoryPage } from "../history";
 import { usePortForwardEvents } from "../../hooks/use-port-forward-events";
 import { UpdateDialog } from "../updater/UpdateDialog";
+import { Toaster } from "../shared/Toaster";
 
 export function AppShell() {
   const themeMode = useSettingsStore((s) => s.themeMode);
@@ -289,7 +290,7 @@ export function AppShell() {
       <Sidebar />
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 min-w-0 rounded-xl overflow-hidden">
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Unified tab bar — always shown */}
         <UnifiedTabBar />
 
@@ -369,6 +370,9 @@ export function AppShell() {
 
       {/* Snippet command palette */}
       <SnippetPalette />
+
+      {/* Transient notifications (errors, etc.) */}
+      <Toaster />
     </div>
   );
 }
