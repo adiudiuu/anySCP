@@ -919,6 +919,20 @@ impl HostDb {
         }
     }
 
+    /// Permanently delete a single connection history row by its integer id.
+    #[instrument(skip(self), fields(id = %id))]
+    pub fn delete_connection_history_entry(&self, id: i64) -> Result<(), DbError> {
+        let conn = self
+            .conn
+            .lock()
+            .map_err(|e| DbError::InitError(format!("db lock poisoned: {e}")))?;
+        let affected = conn.execute("DELETE FROM connection_history WHERE id = ?1", params![id])?;
+        if affected == 0 {
+            return Err(DbError::NotFound(id.to_string()));
+        }
+        Ok(())
+    }
+
     fn map_history_row(row: &rusqlite::Row) -> rusqlite::Result<ConnectionHistoryEntry> {
         Ok(ConnectionHistoryEntry {
             id: row.get(0)?,

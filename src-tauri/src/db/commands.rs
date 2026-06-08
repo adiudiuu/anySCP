@@ -150,6 +150,18 @@ pub async fn list_connection_history(
         .map_err(|e| DbError::InitError(format!("task panicked: {e}")))?
 }
 
+#[tauri::command]
+#[instrument(skip(state), fields(id = %id))]
+pub async fn delete_connection_history_entry(
+    id: i64,
+    state: State<'_, Arc<HostDb>>,
+) -> Result<(), DbError> {
+    let db = Arc::clone(&state);
+    task::spawn_blocking(move || db.delete_connection_history_entry(id))
+        .await
+        .map_err(|e| DbError::InitError(format!("task panicked: {e}")))?
+}
+
 // ─── App Settings ─────────────────────────────────────────────────────────────
 
 #[tauri::command]

@@ -5,6 +5,7 @@ import { useS3Store } from "../../stores/s3-store";
 import { S3Browser } from "./S3Browser";
 import { S3ConnectDialog } from "./S3ConnectDialog";
 import { ContextMenu } from "../shared/ContextMenu";
+import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 import type { ContextMenuItem } from "../shared/ContextMenu";
 import type { S3Session } from "../../stores/s3-store";
 
@@ -19,6 +20,7 @@ export function S3Page() {
   const [savedConnections, setSavedConnections] = useState<S3Connection[]>([]);
   const [contextMenu, setContextMenu] = useState<{ session: S3Session; x: number; y: number } | null>(null);
   const [savedContextMenu, setSavedContextMenu] = useState<{ conn: S3Connection; x: number; y: number } | null>(null);
+  const [deletingSavedConn, setDeletingSavedConn] = useState<S3Connection | null>(null);
 
   // Load saved connections on mount
   useEffect(() => {
@@ -316,7 +318,7 @@ export function S3Page() {
               label: "Delete",
               icon: Trash2,
               danger: true,
-              onClick: () => void handleDeleteSaved(savedContextMenu.conn),
+              onClick: () => setDeletingSavedConn(savedContextMenu.conn),
             },
           ]}
           position={{ x: savedContextMenu.x, y: savedContextMenu.y }}
@@ -336,6 +338,20 @@ export function S3Page() {
           onClose={() => { setEditingConnection(null); void loadSavedConnections(); }}
         />
       )}
+
+      <ConfirmDangerDialog
+        open={deletingSavedConn !== null}
+        title="Delete this S3 connection?"
+        message="This connection will be permanently removed."
+        onCancel={() => setDeletingSavedConn(null)}
+        onConfirm={() => {
+          const conn = deletingSavedConn;
+          setDeletingSavedConn(null);
+          if (conn) {
+            void handleDeleteSaved(conn);
+          }
+        }}
+      />
     </>
   );
 }

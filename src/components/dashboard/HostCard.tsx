@@ -3,6 +3,7 @@ import { Activity, Pencil, TerminalSquare, Copy, Trash2, FolderOpen, Waypoints }
 import type { SavedHost } from "../../types";
 import { relativeTime } from "../../utils/time";
 import { ContextMenu } from "../shared/ContextMenu";
+import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 import { useHealthStore, IDLE_HEALTH, type HealthStatus } from "../../stores/health-store";
 import { useHostsStore } from "../../stores/hosts-store";
 
@@ -72,6 +73,7 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
   const initial = displayName.charAt(0).toUpperCase();
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   // Health lives in a store (keyed by host id), not local state, so a status
   // survives the dashboard unmounting when a terminal/other tab becomes active.
   const health = useHealthStore((s) => s.byHostId[host.id] ?? IDLE_HEALTH);
@@ -139,7 +141,7 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
       label: "Delete",
       icon: Trash2,
       danger: true,
-      onClick: () => onDelete(host.id),
+      onClick: () => setConfirmDelete(true),
     },
   ];
 
@@ -350,6 +352,17 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      <ConfirmDangerDialog
+        open={confirmDelete}
+        title="Delete this host?"
+        message="This host will be permanently removed."
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onDelete(host.id);
+        }}
+      />
     </>
   );
 }

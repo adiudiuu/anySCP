@@ -248,6 +248,7 @@ pub fn run() {
             db::commands::list_recent_connections,
             // Connection history (full audit)
             db::commands::list_connection_history,
+            db::commands::delete_connection_history_entry,
             // App settings
             db::commands::save_setting,
             db::commands::load_all_settings,

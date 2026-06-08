@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Folder, Trash2 } from "lucide-react";
 import type { SnippetFolder } from "../../types";
 import { ContextMenu } from "../shared/ContextMenu";
+import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 
 // ─── Folder colors ────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ export function SnippetFolderCard({
   onDelete,
 }: SnippetFolderCardProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -35,7 +37,7 @@ export function SnippetFolderCard({
       label: "Delete Folder",
       icon: Trash2,
       danger: true,
-      onClick: () => onDelete(folder.id),
+      onClick: () => setConfirmDelete(true),
     },
   ];
 
@@ -88,6 +90,17 @@ export function SnippetFolderCard({
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      <ConfirmDangerDialog
+        open={confirmDelete}
+        title="Delete this folder?"
+        message="This folder will be permanently removed."
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onDelete(folder.id);
+        }}
+      />
     </>
   );
 }

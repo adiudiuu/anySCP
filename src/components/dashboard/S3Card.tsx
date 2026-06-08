@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Cloud, Pencil, Copy, Trash2, FolderOpen } from "lucide-react";
 import type { S3Connection } from "../../types";
 import { ContextMenu } from "../shared/ContextMenu";
+import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 import { getHostColor } from "./HostCard";
 
 interface S3CardProps {
@@ -41,6 +42,7 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
   const accentColor = conn.color || getHostColor(conn.label);
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const subtitleParts: string[] = [conn.provider, conn.region];
   if (conn.bucket) subtitleParts.push(conn.bucket);
@@ -70,7 +72,7 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
     { label: "Explore", icon: FolderOpen, onClick: () => onConnect(conn) },
     { label: "Edit", icon: Pencil, onClick: () => onEdit(conn) },
     { label: "Duplicate", icon: Copy, onClick: () => onDuplicate(conn) },
-    { label: "Delete", icon: Trash2, danger: true, separator: true, onClick: () => onDelete(conn) },
+    { label: "Delete", icon: Trash2, danger: true, separator: true, onClick: () => setConfirmDelete(true) },
   ];
 
   return (
@@ -173,6 +175,17 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      <ConfirmDangerDialog
+        open={confirmDelete}
+        title="Delete this S3 connection?"
+        message="This connection will be permanently removed."
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onDelete(conn);
+        }}
+      />
     </>
   );
 }

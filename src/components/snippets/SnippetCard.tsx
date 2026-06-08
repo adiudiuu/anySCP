@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pencil, Copy, Trash2, AlertTriangle } from "lucide-react";
 import type { Snippet } from "../../types";
 import { ContextMenu } from "../shared/ContextMenu";
+import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -52,6 +53,7 @@ interface SnippetCardProps {
 
 export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetCardProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -78,7 +80,7 @@ export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetC
       label: "Delete",
       icon: Trash2,
       danger: true,
-      onClick: () => onDelete(snippet.id),
+      onClick: () => setConfirmDelete(true),
     },
   ];
 
@@ -170,6 +172,17 @@ export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetC
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      <ConfirmDangerDialog
+        open={confirmDelete}
+        title="Delete this snippet?"
+        message="This snippet will be permanently removed."
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onDelete(snippet.id);
+        }}
+      />
     </>
   );
 }

@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Search, Clock, ChevronDown, Loader2, TerminalSquare, FolderOpen } from "lucide-react";
+import { Search, Clock, ChevronDown, Loader2, TerminalSquare, FolderOpen, Trash2 } from "lucide-react";
 import { CustomSelect } from "../shared/CustomSelect";
 import { useSftpStore } from "../../stores/sftp-store";
 import { useSessionStore } from "../../stores/session-store";
 import { useHostsStore } from "../../stores/hosts-store";
 import { useTabStore } from "../../stores/tab-store";
 import { ContextMenu } from "../shared/ContextMenu";
+import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 import type { ContextMenuItem } from "../shared/ContextMenu";
 import type { ConnectionHistoryEntry } from "../../types";
 import { parseSqliteUtc } from "../../utils/time";
@@ -52,9 +53,11 @@ export function HistoryPage() {
   const [query, setQuery] = useState("");
   const [hostFilter, setHostFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mutating, setMutating] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const offsetRef = useRef(0);
   const [contextMenu, setContextMenu] = useState<{ entry: ConnectionHistoryEntry; x: number; y: number } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const loadEntries = async (reset: boolean) => {
     setLoading(true);
@@ -122,6 +125,11 @@ export function HistoryPage() {
     }
   }, []);
 
+  const handleContextMenu = (e: React.MouseEvent, entry: ConnectionHistoryEntry) => {
+    e.preventDefault();
+    setContextMenu({ entry, x: e.clientX, y: e.clientY });
+  };
+
   const handleExplorer = useCallback(async (entry: ConnectionHistoryEntry) => {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
@@ -150,10 +158,18 @@ export function HistoryPage() {
     }
   }, []);
 
-  const handleContextMenu = (e: React.MouseEvent, entry: ConnectionHistoryEntry) => {
-    e.preventDefault();
-    setContextMenu({ entry, x: e.clientX, y: e.clientY });
-  };
+  const handleDeleteHistoryEntry = useCallback(async (entryId: number) => {
+    setMutating(true);
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("delete_connection_history_entry", { id: entryId });
+      setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
+    } catch {
+      // best-effort
+    } finally {
+      setMutating(false);
+    }
+  }, []);
 
   const buildContextItems = (entry: ConnectionHistoryEntry): ContextMenuItem[] => [
     {
@@ -167,8 +183,16 @@ export function HistoryPage() {
       onClick: () => void handleExplorer(entry),
     },
     {
+      label: "Delete",
+      icon: Trash2,
+      danger: true,
+      disabled: mutating,
+      onClick: () => setConfirmDeleteId(entry.id),
+    },
+    {
       label: `Filter by ${entry.host_label || entry.host}`,
       separator: true,
+      disabled: mutating,
       onClick: () => {
         setHostFilter(entry.host_id);
         setQuery("");
@@ -352,6 +376,21 @@ export function HistoryPage() {
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      <ConfirmDangerDialog
+        open={confirmDeleteId !== null}
+        title="Delete this history record?"
+        message="This record will be permanently removed."
+        busy={mutating}
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={() => {
+          const id = confirmDeleteId;
+          setConfirmDeleteId(null);
+          if (id !== null) {
+            void handleDeleteHistoryEntry(id);
+          }
+        }}
+      />
     </>
   );
 }

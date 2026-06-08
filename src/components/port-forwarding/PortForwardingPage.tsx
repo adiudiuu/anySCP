@@ -4,6 +4,7 @@ import { CustomSelect } from "../shared/CustomSelect";
 import { usePortForwardStore } from "../../stores/port-forward-store";
 import { useHostsStore } from "../../stores/hosts-store";
 import { ContextMenu } from "../shared/ContextMenu";
+import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 import type { ContextMenuItem } from "../shared/ContextMenu";
 import type { PortForwardRule, SavedHost } from "../../types";
 
@@ -24,6 +25,7 @@ export function PortForwardingPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState<PortForwardRule | null>(null);
+  const [deletingRule, setDeletingRule] = useState<PortForwardRule | null>(null);
   const [query, setQuery] = useState("");
   const [contextMenu, setContextMenu] = useState<{ rule: PortForwardRule; x: number; y: number } | null>(null);
 
@@ -101,7 +103,7 @@ export function PortForwardingPage() {
       label: "Delete",
       icon: Trash2,
       danger: true,
-      onClick: () => void deleteRule(rule.id),
+      onClick: () => setDeletingRule(rule),
     });
 
     return items;
@@ -349,6 +351,20 @@ export function PortForwardingPage() {
           onCancel={() => setEditingRule(null)}
         />
       )}
+
+      <ConfirmDangerDialog
+        open={deletingRule !== null}
+        title="Delete this tunnel rule?"
+        message="This tunnel rule will be permanently removed."
+        onCancel={() => setDeletingRule(null)}
+        onConfirm={() => {
+          const rule = deletingRule;
+          setDeletingRule(null);
+          if (rule) {
+            void deleteRule(rule.id);
+          }
+        }}
+      />
     </>
   );
 }
