@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import { useUiStore } from "../../stores/ui-store";
 import { useHostsStore } from "../../stores/hosts-store";
 import { useGroupsStore } from "../../stores/groups-store";
@@ -497,19 +498,13 @@ export function HostEditModal() {
             {isNewHost ? "New Host" : "Edit Host"}
           </h2>
           <button
+            type="button"
             onClick={close}
             disabled={isBusy}
             aria-label="Close"
-            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path
-                d="M1 1l12 12M13 1L1 13"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
+            <X size={14} strokeWidth={1.8} aria-hidden="true" />
           </button>
         </div>
 
@@ -986,7 +981,7 @@ export function HostEditModal() {
         </div>
 
         {/* ── Footer ─────────────────────────────────────────────────────── */}
-        <div className="px-6 pb-5 pt-3 flex items-center justify-between gap-2 border-t border-border shrink-0">
+        <div className="px-6 py-3 flex items-center justify-between gap-2 border-t border-border shrink-0">
           {/* Left: Delete / delete confirmation (hidden for new hosts) */}
           <div className="flex items-center gap-2">
             {isNewHost ? (
@@ -1003,7 +998,7 @@ export function HostEditModal() {
                 data-testid="host-modal-delete"
                 onClick={() => setDeleteConfirm(true)}
                 disabled={isBusy || loadingHost}
-                className="px-3 py-2 text-[length:var(--text-sm)] text-status-error hover:bg-status-error/10 rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="px-3 py-1.5 text-[length:var(--text-sm)] text-status-error hover:bg-status-error/10 rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Delete
               </button>
@@ -1018,7 +1013,7 @@ export function HostEditModal() {
                 data-testid="host-modal-cancel"
                 onClick={close}
                 disabled={isBusy}
-                className="px-4 py-2 text-[length:var(--text-sm)] text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -1027,7 +1022,7 @@ export function HostEditModal() {
                 data-testid="host-modal-save"
                 onClick={handleSave}
                 disabled={isBusy || loadingHost}
-                className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary bg-bg-subtle hover:bg-bg-muted disabled:opacity-50 rounded-lg border border-border transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary bg-bg-subtle hover:bg-bg-muted disabled:opacity-50 rounded-lg border border-border transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {saving ? "Saving\u2026" : "Save"}
               </button>
@@ -1036,7 +1031,7 @@ export function HostEditModal() {
                 data-testid="host-modal-connect"
                 onClick={handleConnect}
                 disabled={isBusy || loadingHost}
-                className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay"
+                className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay"
               >
                 {connecting ? "Connecting\u2026" : "Connect"}
               </button>
