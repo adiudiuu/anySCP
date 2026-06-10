@@ -24,6 +24,9 @@ pub enum SshError {
     #[allow(dead_code)]
     #[error("Session already disconnected")]
     AlreadyDisconnected,
+
+    #[error("Connection cancelled")]
+    Cancelled,
 }
 
 impl Serialize for SshError {
@@ -41,6 +44,7 @@ impl Serialize for SshError {
             SshError::KeyParseError(_) => "key_parse_error",
             SshError::IoError(_) => "io_error",
             SshError::AlreadyDisconnected => "already_disconnected",
+            SshError::Cancelled => "cancelled",
         };
         state.serialize_field("kind", kind)?;
         state.serialize_field("message", &self.to_string())?;
@@ -63,5 +67,19 @@ impl From<russh::Error> for SshError {
 impl From<russh_keys::Error> for SshError {
     fn from(e: russh_keys::Error) -> Self {
         SshError::KeyParseError(e.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The frontend distinguishes a deliberate cancel from a failure by the
+    /// serialized `kind`, so the wire shape is a contract.
+    #[test]
+    fn cancelled_serializes_with_a_distinct_kind() {
+        let json = serde_json::to_value(SshError::Cancelled).expect("serialize");
+        assert_eq!(json["kind"], "cancelled");
+        assert_eq!(json["message"], "Connection cancelled");
     }
 }
