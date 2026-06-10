@@ -92,20 +92,20 @@ export function GroupDeleteDialog({
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-5 pt-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
+        <div className="px-6 py-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
           <button
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={() => onConfirm(deleteHosts)}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-inverse bg-status-error hover:opacity-90 active:opacity-80 rounded-lg transition-opacity duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-inverse bg-status-error hover:opacity-90 active:opacity-80 rounded-lg transition-opacity duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {confirmLabel}
           </button>

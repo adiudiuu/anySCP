@@ -80,7 +80,7 @@ export function ConfirmDangerDialog({
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-5 pt-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
+        <div className="px-6 py-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
           <button
             // autoFocus lands on Cancel (the safe default) synchronously on mount.
             // This is more reliable than a requestAnimationFrame focus() call.
@@ -90,7 +90,7 @@ export function ConfirmDangerDialog({
             onClick={onCancel}
             disabled={busy}
             className={[
-              "px-4 py-2 rounded-lg text-[length:var(--text-sm)] font-medium",
+              "px-4 py-1.5 rounded-lg text-[length:var(--text-sm)] font-medium",
               "text-text-secondary hover:text-text-primary",
               "transition-colors duration-[var(--duration-fast)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -103,7 +103,7 @@ export function ConfirmDangerDialog({
             type="submit"
             disabled={busy}
             className={[
-              "px-4 py-2 rounded-lg text-[length:var(--text-sm)] font-medium",
+              "px-4 py-1.5 rounded-lg text-[length:var(--text-sm)] font-medium",
               "bg-status-error text-text-inverse",
               "hover:opacity-90 active:opacity-80",
               "transition-opacity duration-[var(--duration-fast)]",

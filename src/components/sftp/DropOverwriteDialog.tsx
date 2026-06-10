@@ -89,13 +89,13 @@ export function DropOverwriteDialog({
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-5 pt-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
+        <div className="px-6 py-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
           <button
             ref={cancelRef}
             data-testid="explorer-overwrite-cancel"
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Cancel
           </button>
@@ -103,7 +103,7 @@ export function DropOverwriteDialog({
             data-testid="explorer-overwrite-confirm-button"
             type="button"
             onClick={onConfirm}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {count === 1 ? "Overwrite" : `Overwrite ${count}`}
           </button>

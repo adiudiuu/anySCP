@@ -78,18 +78,18 @@ export function UpdateDialog() {
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-5 pt-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
+        <div className="px-6 py-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
           <button
             type="button"
             onClick={skip}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-muted hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-muted hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Skip this version
           </button>
           <button
             type="button"
             onClick={dismiss}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-secondary bg-bg-subtle border border-border hover:text-text-primary hover:border-border-focus rounded-lg transition-all duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary bg-bg-subtle border border-border hover:text-text-primary hover:border-border-focus rounded-lg transition-all duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Later
           </button>
@@ -98,7 +98,7 @@ export function UpdateDialog() {
             autoFocus
             type="button"
             onClick={() => void install()}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Install
           </button>
