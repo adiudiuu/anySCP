@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X, Braces } from "lucide-react";
 import type { Snippet } from "../../types";
 import { useSessionStore } from "../../stores/session-store";
 import { CustomSelect } from "../shared/CustomSelect";
@@ -124,13 +124,18 @@ export function VariableDialog({ snippet, onExecute, onCancel }: VariableDialogP
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary truncate">
-              {snippet.name}
-            </h2>
-            <p className="text-[length:var(--text-xs)] text-text-muted mt-0.5 font-mono truncate">
-              {snippet.command}
-            </p>
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-accent/10">
+              <Braces size={16} strokeWidth={1.8} className="text-accent" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary truncate">
+                {snippet.name}
+              </h2>
+              <p className="text-[length:var(--text-xs)] text-text-muted mt-0.5 font-mono truncate">
+                {snippet.command}
+              </p>
+            </div>
           </div>
           <button
             type="button"

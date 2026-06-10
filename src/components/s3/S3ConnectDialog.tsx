@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { X, Cloud } from "lucide-react";
 import { useS3Store } from "../../stores/s3-store";
 import { useGroupsStore } from "../../stores/groups-store";
 import { CustomSelect } from "../shared/CustomSelect";
@@ -194,9 +194,14 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
-          <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
-            {isEdit ? "Edit Connection" : "Connect to S3"}
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-accent/10">
+              <Cloud size={16} strokeWidth={1.8} className="text-accent" aria-hidden="true" />
+            </div>
+            <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
+              {isEdit ? "Edit Connection" : "Connect to S3"}
+            </h2>
+          </div>
           <button
             type="button"
             onClick={onClose}

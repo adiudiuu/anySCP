@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X } from "lucide-react";
+import { X, Braces } from "lucide-react";
 import type { Snippet, SnippetFolder, SnippetVariable } from "../../types";
 import { extractVariables, parseVariables } from "../../utils/snippet-resolve";
 import { CustomSelect } from "../shared/CustomSelect";
@@ -293,9 +293,14 @@ export function SnippetEditModal({
       >
         {/* ── Header (sticky) ─────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
-          <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
-            {isEdit ? "Edit Snippet" : "New Snippet"}
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-accent/10">
+              <Braces size={16} strokeWidth={1.8} className="text-accent" aria-hidden="true" />
+            </div>
+            <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
+              {isEdit ? "Edit Snippet" : "New Snippet"}
+            </h2>
+          </div>
           <button
             type="button"
             onClick={onClose}
