@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Folder } from "lucide-react";
+import { Folder, X } from "lucide-react";
 
 // ─── Folder colors ────────────────────────────────────────────────────────────
 
@@ -104,32 +104,45 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
       ref={backdropRef}
       onClick={handleBackdropClick}
       className={[
-        "fixed inset-0 z-50 flex items-start justify-center pt-[12vh]",
+        "fixed inset-0 z-50 flex items-start justify-center pt-[8vh]",
         "transition-[background-color,backdrop-filter] duration-[var(--duration-base)]",
         visible ? "bg-black/50 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none",
       ].join(" ")}
     >
-      <div
+      <form
+        onSubmit={handleSubmit}
         className={[
-          "w-full max-w-sm rounded-xl bg-bg-overlay border border-border p-6 shadow-[var(--shadow-lg)]",
+          "w-full max-w-sm rounded-xl bg-bg-overlay border border-border shadow-[var(--shadow-lg)] flex flex-col",
           "transition-[opacity,transform] duration-[var(--duration-slow)] ease-[var(--ease-expo-out)]",
           visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3",
         ].join(" ")}
       >
-        {/* Preview + title */}
-        <div className="flex items-center gap-3 mb-5">
-          <div
-            className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0"
-            style={{ backgroundColor: `${color}20` }}
-          >
-            <Folder size={22} strokeWidth={1.8} style={{ color }} aria-hidden="true" />
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+              style={{ backgroundColor: `${color}20` }}
+            >
+              <Folder size={18} strokeWidth={1.8} style={{ color }} aria-hidden="true" />
+            </div>
+            <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
+              New Folder
+            </h2>
           </div>
-          <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
-            New Folder
-          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Close"
+            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+          >
+            <X size={14} strokeWidth={1.8} aria-hidden="true" />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Body */}
+        <div className="px-6 py-5 flex flex-col gap-4">
           {/* Name */}
           <div>
             <label className={labelClass}>
@@ -174,46 +187,31 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
 
           {/* Error */}
           {error && (
-            <p
-              className="text-[length:var(--text-sm)] text-status-error bg-status-error/10 rounded-lg px-3 py-2"
-              role="alert"
-            >
+            <p className="text-[length:var(--text-sm)] text-status-error bg-status-error/10 rounded-lg px-3 py-2" role="alert">
               {error}
             </p>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-2 mt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              className={[
-                "px-4 py-2 text-[length:var(--text-sm)] text-text-secondary",
-                "hover:text-text-primary rounded-lg",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "transition-colors duration-[var(--duration-fast)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              ].join(" ")}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || !name.trim()}
-              className={[
-                "px-4 py-2 text-[length:var(--text-sm)] font-medium rounded-lg",
-                "text-text-inverse bg-accent hover:bg-accent-hover",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "transition-colors duration-[var(--duration-fast)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay",
-              ].join(" ")}
-            >
-              {saving ? "Creating\u2026" : "Create Folder"}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Footer */}
+        <div className="px-6 py-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving || !name.trim()}
+            className="px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay"
+          >
+            {saving ? "Creating\u2026" : "Create Folder"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
