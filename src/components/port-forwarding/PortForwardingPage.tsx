@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { Plus, Trash2, ArrowRight, Search, Wifi, Pencil, Copy, Clock } from "lucide-react";
+import { Plus, Trash2, ArrowRight, Search, Wifi, Pencil, Copy, Clock, Plug } from "lucide-react";
 import { CustomSelect } from "../shared/CustomSelect";
 import { usePortForwardStore } from "../../stores/port-forward-store";
 import { useHostsStore } from "../../stores/hosts-store";
 import { ContextMenu } from "../shared/ContextMenu";
 import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
+import { ModalShell, BTN_GHOST, BTN_PRIMARY } from "../shared/ModalShell";
 import type { ContextMenuItem } from "../shared/ContextMenu";
 import type { PortForwardRule, SavedHost } from "../../types";
 
@@ -440,13 +441,6 @@ function RuleDialog({
     });
   };
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onCancel]);
 
   const inputClass =
     "w-full rounded-lg bg-bg-base border border-border px-3 py-2 text-[length:var(--text-sm)] text-text-primary placeholder:text-text-muted outline-none focus:border-border-focus focus:ring-2 focus:ring-ring transition-[border-color,box-shadow] duration-[var(--duration-fast)]";
@@ -455,37 +449,24 @@ function RuleDialog({
     "block text-[length:var(--text-xs)] font-medium text-text-secondary mb-1";
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[8vh]"
-      style={{ backgroundColor: "oklch(0 0 0 / 0.5)", backdropFilter: "blur(4px)" }}
-      onClick={(e) => e.target === e.currentTarget && onCancel()}
-    >
-      <form
-        onSubmit={handleSubmit}
-        role="dialog"
-        data-testid="rule-dialog"
-        aria-label={isEdit ? "Edit forwarding rule" : "New forwarding rule"}
-        className="w-full max-w-lg rounded-xl bg-bg-overlay border border-border shadow-[var(--shadow-lg)] flex flex-col max-h-[84vh] animate-[fadeIn_120ms_var(--ease-expo-out)_both]"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
-          <h2 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
-            {isEdit ? "Edit Rule" : "New Rule"}
-          </h2>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Close"
-            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
+    <ModalShell
+      open
+      onClose={onCancel}
+      title={isEdit ? "Edit Rule" : "New Rule"}
+      icon={Plug}
+      maxWidth="lg"
+      scrollable
+      testId="rule-dialog"
+      footer={
+        <>
+          <button type="button" onClick={onCancel} className={BTN_GHOST}>Cancel</button>
+          <button form="rule-dialog-form" type="submit" data-testid="rule-dialog-save" disabled={!canSubmit} className={BTN_PRIMARY}>
+            {isEdit ? "Save" : "Create"}
           </button>
-        </div>
-
-        {/* Body */}
-        <div className="px-6 py-4 flex flex-col gap-3.5 overflow-y-auto flex-1 min-h-0">
+        </>
+      }
+    >
+        <form id="rule-dialog-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
           <SectionHeader>Connection</SectionHeader>
 
           {/* Host */}
@@ -642,27 +623,7 @@ function RuleDialog({
               ].join(" ")} />
             </button>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-5 pt-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 text-[length:var(--text-sm)] text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            data-testid="rule-dialog-save"
-            disabled={!canSubmit}
-            className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {isEdit ? "Save" : "Create"}
-          </button>
-        </div>
-      </form>
-    </div>
+        </form>
+    </ModalShell>
   );
 }

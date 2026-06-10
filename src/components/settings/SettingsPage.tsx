@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { ModalShell, BTN_GHOST, BTN_PRIMARY, BTN_DANGER } from "../shared/ModalShell";
 import { useSettingsStore } from "../../stores/settings-store";
 import { CustomSelect, type SelectOption } from "../shared/CustomSelect";
 import { useUpdaterStore } from "../../stores/updater-store";
@@ -718,9 +719,7 @@ function BackupPasswordModal({ mode, open, path, onClose }: {
   const [pw, setPw] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
-  const [visible, setVisible] = useState(false);
 
-  const backdropRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const valid = isExport ? pw.length >= MIN_LEN && pw === confirm : pw.length > 0;
@@ -731,22 +730,9 @@ function BackupPasswordModal({ mode, open, path, onClose }: {
       setPw("");
       setConfirm("");
       setBusy(false);
-      requestAnimationFrame(() => setVisible(true));
-    } else {
-      setVisible(false);
+      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
-
-  useEffect(() => {
-    if (visible) requestAnimationFrame(() => inputRef.current?.focus());
-  }, [visible]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !busy) onClose(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose, busy]);
 
   const submit = useCallback(async () => {
     if (!canSubmit) return;
@@ -785,45 +771,33 @@ function BackupPasswordModal({ mode, open, path, onClose }: {
     }
   }, [canSubmit, isExport, pw, path, onClose]);
 
-  if (!open) return null;
-
   return (
-    <div
-      ref={backdropRef}
-      onClick={(e) => { if (e.target === backdropRef.current && !busy) onClose(); }}
-      className={[
-        "fixed inset-0 z-50 flex items-start justify-center pt-[10vh]",
-        "transition-[background-color,backdrop-filter] duration-[var(--duration-base)]",
-        visible ? "bg-black/50 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none",
-      ].join(" ")}
+    <ModalShell
+      open={open}
+      onClose={onClose}
+      title={isExport ? "Export encrypted backup" : "Import backup"}
+      icon={isExport ? ShieldCheck : AlertCircle}
+      iconVariant={isExport ? "accent" : "danger"}
+      maxWidth="md"
+      busy={busy}
+      testId={`backup-modal-${mode}`}
+      footer={
+        <>
+          <button type="button" onClick={onClose} disabled={busy} className={BTN_GHOST}>Cancel</button>
+          <button
+            form="backup-form"
+            type="submit"
+            data-testid="backup-submit"
+            disabled={!canSubmit}
+            className={isExport ? BTN_PRIMARY : BTN_DANGER}
+          >
+            {busy && <RefreshCw size={13} strokeWidth={2} className="motion-safe:animate-spin" />}
+            {isExport ? (busy ? "Exporting…" : "Choose file & export") : (busy ? "Restoring…" : "Import & restart")}
+          </button>
+        </>
+      }
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="backup-title"
-        data-testid={`backup-modal-${mode}`}
-        className={[
-          "w-full max-w-md rounded-xl bg-bg-overlay border border-border shadow-[var(--shadow-lg)]",
-          "flex flex-col",
-          "transition-[opacity,transform] duration-[var(--duration-slow)] ease-[var(--ease-expo-out)]",
-          visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3",
-        ].join(" ")}
-      >
-        {/* Header */}
-        <div className="flex items-center gap-2.5 px-6 pt-5 pb-4 border-b border-border shrink-0">
-          {isExport
-            ? <ShieldCheck size={18} strokeWidth={2} className="text-accent shrink-0" />
-            : <AlertCircle size={18} strokeWidth={2} className="text-status-error shrink-0" />}
-          <h2 id="backup-title" className="text-[length:var(--text-lg)] font-semibold text-text-primary">
-            {isExport ? "Export encrypted backup" : "Import backup"}
-          </h2>
-        </div>
-
-        {/* Body */}
-        <form
-          onSubmit={(e) => { e.preventDefault(); void submit(); }}
-          className="px-6 py-4 flex flex-col gap-4"
-        >
+        <form id="backup-form" onSubmit={(e) => { e.preventDefault(); void submit(); }} className="flex flex-col gap-4">
           <p className="text-[length:var(--text-sm)] text-text-secondary">
             {isExport
               ? "Choose a password to encrypt the backup. You’ll need it to restore — there’s no way to recover the data without it."
@@ -866,38 +840,8 @@ function BackupPasswordModal({ mode, open, path, onClose }: {
             </div>
           )}
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={busy}
-              className="px-4 py-2 text-[length:var(--text-sm)] text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              data-testid="backup-submit"
-              disabled={!canSubmit}
-              className={[
-                "flex items-center gap-1.5 px-4 py-2 rounded-lg",
-                "text-[length:var(--text-sm)] font-medium text-text-inverse",
-                isExport ? "bg-accent hover:bg-accent-hover" : "bg-status-error hover:opacity-90",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "transition-[opacity,background-color] duration-[var(--duration-fast)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay",
-              ].join(" ")}
-            >
-              {busy && <RefreshCw size={13} strokeWidth={2} className="motion-safe:animate-spin" />}
-              {isExport
-                ? (busy ? "Exporting…" : "Choose file & export")
-                : (busy ? "Restoring…" : "Import & restart")}
-            </button>
-          </div>
         </form>
-      </div>
-    </div>
+    </ModalShell>
   );
 }
 
@@ -907,9 +851,7 @@ function ConfirmResetModal({ open, onClose }: { open: boolean; onClose: () => vo
   const CONFIRM_WORD = "DELETE";
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const [visible, setVisible] = useState(false);
 
-  const backdropRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const canReset = text.trim() === CONFIRM_WORD && !busy;
@@ -918,22 +860,9 @@ function ConfirmResetModal({ open, onClose }: { open: boolean; onClose: () => vo
     if (open) {
       setText("");
       setBusy(false);
-      requestAnimationFrame(() => setVisible(true));
-    } else {
-      setVisible(false);
+      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
-
-  useEffect(() => {
-    if (visible) requestAnimationFrame(() => inputRef.current?.focus());
-  }, [visible]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !busy) onClose(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose, busy]);
 
   const doReset = useCallback(async () => {
     setBusy(true);
@@ -955,40 +884,33 @@ function ConfirmResetModal({ open, onClose }: { open: boolean; onClose: () => vo
     }
   }, []);
 
-  if (!open) return null;
-
   return (
-    <div
-      ref={backdropRef}
-      onClick={(e) => { if (e.target === backdropRef.current && !busy) onClose(); }}
-      className={[
-        "fixed inset-0 z-50 flex items-start justify-center pt-[12vh]",
-        "transition-[background-color,backdrop-filter] duration-[var(--duration-base)]",
-        visible ? "bg-black/50 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none",
-      ].join(" ")}
+    <ModalShell
+      open={open}
+      onClose={onClose}
+      title="Clear all data?"
+      icon={AlertCircle}
+      iconVariant="danger"
+      maxWidth="md"
+      busy={busy}
+      testId="reset-modal"
+      footer={
+        <>
+          <button type="button" onClick={onClose} disabled={busy} className={BTN_GHOST}>Cancel</button>
+          <button
+            type="button"
+            data-testid="reset-confirm-submit"
+            onClick={() => void doReset()}
+            disabled={!canReset}
+            className={`flex items-center gap-1.5 ${BTN_DANGER}`}
+          >
+            {busy && <RefreshCw size={13} strokeWidth={2} className="motion-safe:animate-spin" />}
+            {busy ? "Clearing…" : "Clear all data"}
+          </button>
+        </>
+      }
     >
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="reset-title"
-        data-testid="reset-modal"
-        className={[
-          "w-full max-w-md rounded-xl bg-bg-overlay border border-border shadow-[var(--shadow-lg)]",
-          "flex flex-col",
-          "transition-[opacity,transform] duration-[var(--duration-slow)] ease-[var(--ease-expo-out)]",
-          visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3",
-        ].join(" ")}
-      >
-        {/* Header */}
-        <div className="flex items-center gap-2.5 px-6 pt-5 pb-4 border-b border-border shrink-0">
-          <AlertCircle size={18} strokeWidth={2} className="text-status-error shrink-0" />
-          <h2 id="reset-title" className="text-[length:var(--text-lg)] font-semibold text-text-primary">
-            Clear all data?
-          </h2>
-        </div>
-
-        {/* Body */}
-        <div className="px-6 py-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <p className="text-[length:var(--text-sm)] text-text-secondary">
             This permanently deletes <strong className="text-text-primary">all</strong> saved
             hosts, groups, history, snippets, port-forward rules, S3 connections, stored
@@ -1014,30 +936,7 @@ function ConfirmResetModal({ open, onClose }: { open: boolean; onClose: () => vo
             />
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-5 pt-3 flex items-center justify-end gap-2 border-t border-border shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="px-4 py-2 text-[length:var(--text-sm)] text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            data-testid="reset-confirm-submit"
-            onClick={() => void doReset()}
-            disabled={!canReset}
-            className="flex items-center gap-1.5 px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-inverse bg-status-error hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-[opacity] duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay"
-          >
-            {busy && <RefreshCw size={13} strokeWidth={2} className="motion-safe:animate-spin" />}
-            {busy ? "Clearing…" : "Clear all data"}
-          </button>
-        </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 }
 
